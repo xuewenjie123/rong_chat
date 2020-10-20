@@ -39,6 +39,14 @@ const router = new VueRouter({
 					/* webpackChunkName: "sendGroup" */ "@/pages/sendGroup/index.vue"
 				),
 		},
+		{
+			path: "/chatRoom",
+			name: "chatRoom",
+			component: () =>
+				import(
+					/* webpackChunkName: "chatRoom" */ "@/pages/chatRoom/index.vue"
+				),
+		},
 	],
 })
 const whiteList = [] //白名单

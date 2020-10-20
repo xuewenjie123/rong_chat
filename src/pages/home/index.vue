@@ -101,6 +101,7 @@ export default {
 			this.selectChat = {
 				chatName: this.selectChat.userName || this.selectChat.groupName,
 				targetId: this.selectChat.userId || this.selectChat.groupId,
+				type: this.selectChat.userId ? "friend" : "group",
 				...this.selectChat,
 			}
 			this.$router.push(
