@@ -2,7 +2,7 @@
 	<div id="chat" class="flex">
 		<!--header-->
 		<header class="header">
-			<span class="title">{{ targetUserInfo.userName }}</span>
+			<span class="title">{{ targetUserInfo.chatName }}</span>
 		</header>
 		<!--header-->
 
@@ -30,14 +30,16 @@
 						{{
 							item.senderUserId == userInfo.userId
 								? userInfo.userName.charAt(0)
-								: targetUserInfo.userName.charAt(0)
+								: otherUserInfo.userName
+								? otherUserInfo.userName.charAt(0)
+								: ""
 						}}
 					</div>
 					<div class="flex" style="margin-left:20px;">
 						<span class="flex">{{
 							item.senderUserId == userInfo.userId
 								? userInfo.userName
-								: targetUserInfo.userName
+								: otherUserInfo.userName
 						}}</span>
 						<span class="flex" v-if="!item.content.imageUri">{{
 							item.content.content
@@ -56,7 +58,7 @@
 						<span class="flex">{{
 							item.senderUserId == userInfo.userId
 								? userInfo.userName
-								: targetUserInfo.userName
+								: otherUserInfo.userName
 						}}</span>
 						<span class="flex" v-if="!item.content.imageUri">{{
 							item.content.content
@@ -76,7 +78,9 @@
 						{{
 							item.senderUserId == userInfo.userId
 								? userInfo.userName.charAt(0)
-								: targetUserInfo.userName.charAt(0)
+								: otherUserInfo.userName
+								? otherUserInfo.userName.charAt(0)
+								: ""
 						}}
 					</div>
 				</div>
@@ -125,6 +129,7 @@ export default {
 		return {
 			userId: userInfo.userId,
 			targetUserInfo: userInfo,
+			otherUserInfo: {},
 			im: {},
 			messageList: [],
 			conversationList: [],
@@ -225,6 +230,11 @@ export default {
 					message.content.content != undefined &&
 					message.content.content != ""
 				) {
+					that.$get("/rest/friends/" + message.senderUserId).then(
+						(result) => {
+							that.otherUserInfo = result.data
+						}
+					)
 					that.messageList.push(message)
 				}
 				that.timer = setTimeout(that.scrollEnd, 2000)
@@ -244,8 +254,9 @@ export default {
 				that.im.Conversation.getList().then(function(conversationList) {
 					that.conversationList = conversationList
 				})
+				console.log(that.targetUserInfo)
 				that.conversation = that.im.Conversation.get({
-					targetId: that.targetUserInfo.userId,
+					targetId: that.targetUserInfo.targetId,
 					type: RongIMLib.CONVERSATION_TYPE.PRIVATE,
 				})
 				var option = {
@@ -288,7 +299,7 @@ export default {
 					message: "消息提示",
 					description:
 						"暂未与" +
-						that.targetUserInfo.userName +
+						that.targetUserInfo.chatName +
 						"连接成功，退出重试",
 					duration: 3,
 				})

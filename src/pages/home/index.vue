@@ -1,27 +1,38 @@
 <template>
 	<div class="homeBox">
 		<a-row>
-			<a-col :span="6" class="leftChatList">
+			<a-col :span="6" class="leftChatList" style="cursor:pointer">
 				<div
-					class="clearfix mt20 itemChat"
-					style="box-sizing:border-box;padding:0 30px;"
+					class="itemChat "
+					style="text-align:left"
+					@click="goSendGroup"
 				>
-					<h3 class="fl">通讯录</h3>
-					<span class="fr iconfont iconadd"></span>
+					群发消息
 				</div>
-				<div class="itemChat">群聊</div>
+				<div class="itemChat aahui font12" style="text-align:left">
+					群聊
+				</div>
 				<div
 					class="itemChat"
-					v-for="(item, index) in groupList"
-					:key="index"
+					v-for="item in groupList"
+					:key="item.groupId"
+					@click="selectChatObj(item)"
+					:style="{
+						background:
+							selectChat.groupId == item.groupId
+								? '#ccc'
+								: 'transparent',
+					}"
 				>
-					<p>{{ "item.群聊" }}</p>
+					<p>{{ item.groupName }}</p>
 				</div>
-				<div class="itemChat">群聊</div>
+				<div class="itemChat aahui font12" style="text-align:left">
+					好友
+				</div>
 				<p
 					class="itemChat"
-					v-for="(item, index) in firendList"
-					:key="index"
+					v-for="item in firendList"
+					:key="item.userId"
 					@click="selectChatObj(item)"
 					:style="{
 						background:
@@ -34,7 +45,13 @@
 				</p>
 			</a-col>
 			<a-col :span="18">
-				<h3 class="textCenter mt20">{{ selectChat.userName }}</h3>
+				<h3 class="textCenter mt20">
+					{{
+						selectChat.userName
+							? selectChat.userName
+							: selectChat.groupName
+					}}
+				</h3>
 				<button @click="sendMsg" class="sendMsg">发消息</button>
 			</a-col>
 		</a-row>
@@ -71,16 +88,27 @@ export default {
 			})
 		},
 		getGroupList() {
-			this.$get("/rest/friends/getGroupList").then((result) => {
-				this.groupList = result.data
+			this.$get("/rest/group/getGroupList").then((result) => {
+				this.groupList = result.data.map((item) => {
+					item.groupId = item.groupId.toString()
+					return item
+				})
 				this.selectChat = this.groupList[0]
 			})
 		},
 		sendMsg() {
 			console.log(this.selectChat)
+			this.selectChat = {
+				chatName: this.selectChat.userName || this.selectChat.groupName,
+				targetId: this.selectChat.userId || this.selectChat.groupId,
+				...this.selectChat,
+			}
 			this.$router.push(
 				"chat?userInfo=" + JSON.stringify(this.selectChat)
 			)
+		},
+		goSendGroup() {
+			this.$router.push("/sendGroup")
 		},
 	},
 }
@@ -117,6 +145,7 @@ export default {
 .itemChat {
 	height: 60px;
 	line-height: 60px;
-	text-align: center;
+	box-sizing: border-box;
+	padding-left: 20px;
 }
 </style>

@@ -4,6 +4,7 @@ import router from "./router/index" //路由
 import store from "./store/index.js" //store
 import validateForm from "./utils/validateForm.js" //表单验证
 import antd from "ant-design-vue"
+import "./assets/css/reset.css"
 import "ant-design-vue/dist/antd.css"
 import { get, post } from "./utils/ajax.js"
 
