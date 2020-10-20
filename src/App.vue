@@ -12,7 +12,5 @@ export default {
 
 <style>
 @import url("//at.alicdn.com/t/font_2102205_2kc8pt0r36e.css");
-#app {
-	min-height: 100vh;
-}
+@import url("./common/common.css");
 </style>

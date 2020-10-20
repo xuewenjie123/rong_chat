@@ -1,0 +1,136 @@
+.flex {
+	display: flex;
+	flex-direction: column;
+}
+
+.flex-item {
+	flex: 1;
+}
+
+.flex-row {
+	flex-direction: row;
+}
+
+.flex-column {
+	flex-direction: column;
+}
+
+.flex-wrap {
+	flex-wrap: wrap;
+}
+
+.align-start {
+	align-items: flex-start;
+}
+
+.justify-start {
+	justify-content: flex-start;
+}
+
+.justify-space {
+	justify-content: space-between;
+}
+
+.justify-around {
+	justify-content: space-around;
+}
+
+.all-center {
+	align-items: center;
+	justify-content: center;
+}
+
+.align-center {
+	align-items: center;
+}
+
+.align-end {
+	align-items: flex-end;
+}
+
+.justify-center {
+	justify-content: center;
+}
+
+.justify-end {
+	justify-content: flex-end;
+}
+
+.font11 {
+	font-size: 11px;
+}
+
+.font12 {
+	font-size: 12px;
+}
+
+.font13 {
+	font-size: 13px;
+}
+
+.font14 {
+	font-size: 14px;
+}
+
+.font16 {
+	font-size: 16px;
+}
+
+.font15 {
+	font-size: 15px;
+}
+
+.font18 {
+	font-size: 18px;
+}
+
+.font20 {
+	font-size: 20px;
+}
+
+.font24 {
+	font-size: 24px;
+}
+
+.lh12 {
+	line-height: 12px;
+}
+.lh14 {
+	line-height: 14px;
+}
+
+.lh15 {
+	line-height: 15px;
+}
+
+.lh16 {
+	line-height: 16px;
+}
+
+.lh18 {
+	line-height: 18px;
+}
+
+.lh20 {
+	line-height: 20px;
+}
+
+.lh22 {
+	line-height: 22px;
+}
+
+.lh25 {
+	line-height: 25px;
+}
+
+.lh32 {
+	line-height: 32px;
+}
+
+.bold {
+	font-weight: bold;
+}
+
+.bai {
+	color: #fff;
+}

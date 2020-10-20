@@ -6,7 +6,7 @@ import validateForm from "./utils/validateForm.js" //表单验证
 import antd from "ant-design-vue"
 import "ant-design-vue/dist/antd.css"
 import { get, post } from "./utils/ajax.js"
-import "./assets/css/reset.css"
+
 import { message } from "ant-design-vue"
 message.config({
 	maxCount: 1,
