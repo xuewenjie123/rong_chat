@@ -86,7 +86,7 @@
 				:key="index"
 				style="background: #ccc;"
 			>
-				<a-checkbox :value="item.userId">
+				<a-checkbox :value="JSON.stringify(item)">
 					{{ item.userName }}
 				</a-checkbox>
 			</p>
@@ -116,11 +116,9 @@ export default {
 	},
 	methods: {
 		sureSelect() {
-			let chatInfo = {
-				targetId: "",
-				chatName: "群发",
-			}
-			this.$router.push("/chatRoom?chatInfo=" + JSON.stringify(chatInfo))
+			this.$router.push(
+				"/chatRoom?checkedUser=" + JSON.stringify(this.checkedUser)
+			)
 		},
 		clearList() {
 			this.customizeTags = ""
@@ -168,7 +166,7 @@ export default {
 			})
 		},
 		checkboxChange(checkedValues) {
-			this.checkedUser = checkedValues
+			this.checkedUser = checkedValues.map((item) => JSON.parse(item))
 		},
 	},
 }

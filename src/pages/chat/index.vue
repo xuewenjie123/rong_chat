@@ -127,7 +127,6 @@ export default {
 		let { userInfo } = this.$route.query
 		userInfo = JSON.parse(userInfo)
 		return {
-			userId: userInfo.userId,
 			targetUserInfo: userInfo,
 			otherUserInfo: {},
 			im: {},
@@ -355,6 +354,7 @@ export default {
 	overflow-y: scroll;
 	box-sizing: border-box;
 	border: 1px solid #cdd7db;
+	padding: 0 30px;
 }
 
 /* footer */
