@@ -124,11 +124,10 @@ export default {
 		quillEditor,
 	},
 	data() {
-		let { userInfo } = this.$route.query
-		userInfo = JSON.parse(userInfo)
+		let { chatInfo } = this.$route.query
+		chatInfo = JSON.parse(chatInfo)
 		return {
-			userId: userInfo.userId,
-			targetUserInfo: userInfo,
+			targetUserInfo: chatInfo,
 			otherUserInfo: {},
 			im: {},
 			messageList: [],
@@ -138,26 +137,25 @@ export default {
 			uploadCallbacks: {},
 			config: {},
 			timer: null,
+			chatRoom: {},
 		}
 	},
 	beforeDestroy() {
-		this.im.disconnect().then(function() {
-			console.log("断开链接成功")
-		})
 		this.timer && clearTimeout(this.timer)
+		that.chatRoom.quit().then(function() {
+			console.log("退出聊天室成功")
+		})
 	},
 	computed: {
 		...mapGetters(["userInfo"]),
 	},
 	mounted() {
 		message.loading("加载中...", 0)
-
 		let that = this
 		this.im = RongIMLib.init({
 			appkey: "6tnym1br6fsl7",
 		})
 		RongIMLib.RongIMEmoji.init()
-
 		var fileType = RongIMLib.FILE_TYPE.IMAGE
 		this.config = {
 			domain: "http://upload.qiniu.com",
@@ -187,9 +185,9 @@ export default {
 				that.im
 					.getFileUrl(fileType, filename, oriname)
 					.then(function(res) {
-						that.conversation
+						that.chatRoom
 							.send({
-								messageType: RongIMLib.MESSAGE_TYPE.IMAGE, // 'RC:ImgMsg'
+								messageType: "RC:ImgMsg", // 'RC:ImgMsg'
 								content: {
 									content:
 										"data:image/png;base64," +
@@ -226,7 +224,6 @@ export default {
 					message.content.content || ""
 				)
 				if (
-					message.content.typingContentType != "RC:TxtMsg" &&
 					message.content.content != undefined &&
 					message.content.content != ""
 				) {
@@ -242,6 +239,19 @@ export default {
 			status: function(event) {
 				var status = event.status
 			},
+			chatroom: function(event) {
+				var updatedEntries = event.updatedEntries
+				console.log("聊天室 KV 存储监听更新:", updatedEntries)
+				/* 
+                    [{
+                        "key": "name",
+                        "value": "我是小融融",
+                        "timestamp": 1597591258338, 
+                        "chatroomId": "z002", 
+                        "type": 1 // 1: 更新（ 含:修改和新增 ）、2: 删除
+                    }]
+                    */
+			},
 		})
 		this.im
 			.connect({
@@ -254,14 +264,17 @@ export default {
 				that.im.Conversation.getList().then(function(conversationList) {
 					that.conversationList = conversationList
 				})
-				console.log(that.targetUserInfo)
-				that.conversation = that.im.Conversation.get({
-					targetId: that.targetUserInfo.targetId,
-					type:
-						that.targetUserInfo.type == "friend"
-							? RongIMLib.CONVERSATION_TYPE.PRIVATE
-							: RongIMLib.CONVERSATION_TYPE.GROUP,
+				// // 注: im 实例通过 RongIMLib.init 获取(单个页面仅需初始化一次)
+				that.chatRoom = that.im.ChatRoom.get({
+					id: that.targetUserInfo.targetId,
 				})
+				that.chatRoom
+					.join({
+						count: 20, // 进入后, 自动拉取 20 条聊天室最新消息
+					})
+					.then(function(res) {
+						console.log("加入聊天室成功", res)
+					})
 			})
 			.catch(function(error) {
 				message.destroy()
@@ -295,9 +308,9 @@ export default {
 				return
 			}
 			let that = this
-			this.conversation
+			this.chatRoom
 				.send({
-					messageType: RongIMLib.MESSAGE_TYPE.TEXT, // 'RC:TxtMsg'
+					messageType: "RC:TxtMsg", // 'RC:TxtMsg'
 					content: {
 						content: that.sendMsgVal, // 文本内容
 					},

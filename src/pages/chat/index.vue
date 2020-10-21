@@ -226,7 +226,6 @@ export default {
 					message.content.content || ""
 				)
 				if (
-					message.content.typingContentType != "RC:TxtMsg" &&
 					message.content.content != undefined &&
 					message.content.content != ""
 				) {

@@ -24,7 +24,7 @@
 						<input
 							type="password"
 							v-model="formData.passWord"
-							placeholder="请输入用户名"
+							placeholder="请输入密码"
 							class="password"
 						/>
 					</div>
