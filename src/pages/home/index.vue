@@ -45,13 +45,35 @@
 				</p>
 			</a-col>
 			<a-col :span="18">
-				<h3 class="textCenter mt20">
+				<h3
+					class="textCenter mt20 font18 bold"
+					style="margin-bottom:30px;"
+				>
 					{{
 						selectChat.userName
 							? selectChat.userName
 							: selectChat.groupName
 					}}
 				</h3>
+				<div class="flex flex-wrap flex-row" style="padding-left:20px;">
+					<div
+						class="flex"
+						style="width:100px;"
+						v-for="item in userList"
+						:key="item.userId"
+					>
+						<div
+							class="flex"
+							style="width:40px;height:40px;border-radius:50%;background:blue;text-align:center;line-height:40px;color:#fff;"
+						>
+							{{ item.userName.charAt(0) }}
+						</div>
+						<p>
+							{{ item.userName }}
+						</p>
+					</div>
+				</div>
+
 				<button @click="sendMsg" class="sendMsg">发消息</button>
 			</a-col>
 		</a-row>
@@ -66,6 +88,7 @@ export default {
 			firendList: [],
 			groupList: [],
 			selectChat: {},
+			userList: [], //群用户列表
 		}
 	},
 	computed: {
@@ -78,12 +101,20 @@ export default {
 	methods: {
 		selectChatObj(obj) {
 			this.selectChat = obj
+			console.log(obj)
+			if (obj.groupId) {
+				this.$get(`/rest/group/${obj.groupId}`).then((result) => {
+					this.userList = result.data.userList
+				})
+			} else {
+				this.userList = []
+			}
 		},
 		getChatFriendList() {
 			this.$get("/rest/friends/getChatFriendList").then((result) => {
 				this.firendList = result.data
 				if (!this.groupList.length) {
-					this.selectChat = this.firendList[0]
+					this.selectChatObj(this.firendList[0])
 				}
 			})
 		},
@@ -93,7 +124,7 @@ export default {
 					item.groupId = item.groupId.toString()
 					return item
 				})
-				this.selectChat = this.groupList[0]
+				this.selectChatObj(this.groupList[0])
 			})
 		},
 		sendMsg() {

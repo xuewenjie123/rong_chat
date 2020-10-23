@@ -41,16 +41,25 @@
 								? userInfo.userName
 								: otherUserInfo.userName
 						}}</span>
-						<span class="flex" v-if="!item.content.imageUri">{{
-							item.content.content
-						}}</span>
+
 						<img
 							class="flex"
-							v-else
+							v-if="item.content.imageUri"
 							style="width:40%;"
 							:src="item.content.imageUri"
 							alt=""
 						/>
+						<div
+							class="flex"
+							style="background:#fff;border-radius:6px;padding:6px"
+							v-else-if="item.content.fileUrl"
+						>
+							<span>{{ item.content.name }}</span>
+							<span>{{ item.content.size | showSize }}</span>
+						</div>
+						<span class="flex" v-else>{{
+							item.content.content
+						}}</span>
 					</div>
 				</div>
 				<div v-else class="flex flex-row justify-end">
@@ -60,16 +69,24 @@
 								? userInfo.userName
 								: otherUserInfo.userName
 						}}</span>
-						<span class="flex" v-if="!item.content.imageUri">{{
-							item.content.content
-						}}</span>
 						<img
 							class="flex"
-							v-else
+							v-if="item.content.imageUri"
 							style="width:40%;"
 							:src="item.content.imageUri"
 							alt=""
 						/>
+						<div
+							class="flex"
+							style="background:#fff;border-radius:6px;padding:6px"
+							v-else-if="item.content.fileUrl"
+						>
+							<span>{{ item.content.name }}</span>
+							<span>{{ item.content.size | showSize }}</span>
+						</div>
+						<span class="flex" v-else>{{
+							item.content.content
+						}}</span>
 					</div>
 					<div
 						class="flex"
@@ -99,12 +116,20 @@
 			<div class="flex justify-around">
 				<input
 					type="file"
+					@change="uploadImg($event)"
+					class="flex send-btn"
+					style="display:none;"
+					id="uploadImg"
+				/>
+				<input
+					type="file"
 					@change="uploadFile($event)"
 					class="flex send-btn"
 					style="display:none;"
 					id="uploadFile"
 				/>
 				<span class="flex send-btn" @click="sendImg">发送图片</span>
+				<span class="flex send-btn" @click="sendFile">发送文件</span>
 				<span class="flex send-btn" @click="sendMsg">发送</span>
 			</div>
 		</footer>
@@ -137,7 +162,40 @@ export default {
 			uploadCallbacks: {},
 			config: {},
 			timer: null,
+			fileType: "",
 		}
+	},
+	filters: {
+		showSize(size) {
+			let showSizeNum = ""
+			let gNum = size / 1024 / 1024 / 1024
+			let mNum = size / 1024 / 1024
+			let kNum = size / 1024
+			console.log(gNum)
+			console.log(gNum > 1)
+			if (
+				gNum > 1 &&
+				gNum.toString().indexOf("e") < 0 &&
+				gNum.toString().indexOf("-") < 0
+			) {
+				showSizeNum = Math.round(gNum * 100) / 100 + "GB"
+			} else if (
+				mNum > 1 &&
+				mNum.toString().indexOf("e") < 0 &&
+				mNum.toString().indexOf("-") < 0
+			) {
+				showSizeNum = Math.round(mNum * 100) / 100 + "MB"
+			} else if (
+				kNum > 1 &&
+				kNum.toString().indexOf("e") < 0 &&
+				kNum.toString().indexOf("-") < 0
+			) {
+				showSizeNum = Math.round(kNum * 100) / 100 + "KB"
+			} else {
+				showSizeNum = size + "B"
+			}
+			return showSizeNum
+		},
 	},
 	beforeDestroy() {
 		this.im.disconnect().then(function() {
@@ -149,7 +207,7 @@ export default {
 		...mapGetters(["userInfo"]),
 	},
 	mounted() {
-		message.loading("加载中...", 0)
+		message.loading("上传中...", 0)
 
 		let that = this
 		this.im = RongIMLib.init({
@@ -157,13 +215,12 @@ export default {
 		})
 		RongIMLib.RongIMEmoji.init()
 
-		var fileType = RongIMLib.FILE_TYPE.IMAGE
 		this.config = {
 			domain: "http://upload.qiniu.com",
-			fileType: fileType,
+			fileType: that.fileType,
 			getToken: function(callback) {
 				that.im
-					.getFileToken(fileType)
+					.getFileToken(that.fileType)
 					.then(function(data) {
 						console.log("data", data)
 						callback(data.token, data)
@@ -182,12 +239,17 @@ export default {
 				// 上传完成, 调用 getFileUrl 获取文件下载 url
 				console.log("上传成功: ", data)
 				var filename = data.filename // 通过 uploadCallbacks 的 onCompleted 中返回的 data 获取
-				var oriname = data.name // 通过 uploadCallbacks 的 onCompleted 中返回的 data 获取
+				var oriname = data.name // 通过 uploadCallbacks 的 onCompleted 中返回的 data 获取;
+				let name = oriname.split(".")
+				var type = data.name[name.length - 1]
+				var size = data.size
+				message.destroy()
 				that.im
-					.getFileUrl(fileType, filename, oriname)
+					.getFileUrl(that.fileType, filename, oriname)
 					.then(function(res) {
-						that.conversation
-							.send({
+						let msgContent = {}
+						if (that.fileType == RongIMLib.FILE_TYPE.IMAGE) {
+							msgContent = {
 								messageType: RongIMLib.MESSAGE_TYPE.IMAGE, // 'RC:ImgMsg'
 								content: {
 									content:
@@ -195,9 +257,22 @@ export default {
 										data.thumbnail, // // 压缩后的 base64 略缩图, 用来快速展示图片
 									imageUri: res.downloadUrl, // 上传到服务器的 url. 用来展示高清图片
 								},
-							})
+							}
+						} else {
+							msgContent = {
+								messageType: RongIMLib.MESSAGE_TYPE.FILE, //'RC:FileMsg'
+								content: {
+									name: filename,
+									fileUrl: res.downloadUrl,
+									type,
+									size,
+								},
+							}
+						}
+						that.conversation
+							.send(msgContent)
 							.then(function(message) {
-								console.log("发送图片消息成功", message)
+								console.log("发送消息成功", message)
 								that.messageList.push(message)
 							})
 					})
@@ -207,6 +282,7 @@ export default {
 			},
 			onError: function(error) {
 				console.error("上传失败", error)
+				message.destroy()
 			},
 		}
 
@@ -225,8 +301,9 @@ export default {
 					message.content.content || ""
 				)
 				if (
-					message.content.content != undefined &&
-					message.content.content != ""
+					message.content.fileUrl ||
+					(message.content.content != undefined &&
+						message.content.content != "")
 				) {
 					that.$get("/rest/friends/" + message.senderUserId).then(
 						(result) => {
@@ -269,14 +346,28 @@ export default {
 	},
 	methods: {
 		sendImg() {
+			var uploadEl = document.getElementById("uploadImg")
+			uploadEl.click()
+		},
+		sendFile() {
 			var uploadEl = document.getElementById("uploadFile")
 			uploadEl.click()
 		},
-		uploadFile(event) {
+		uploadImg(event) {
+			message.loading("上传中...", 0)
 			var _file = event.target.files[0] // 上传的 file 对象
 			let that = this
+			this.fileType = RongIMLib.FILE_TYPE.IMAGE
 			UploadClient.initImage(this.config, function(uploadFile) {
-				console.log("uploadFile", uploadFile)
+				uploadFile.upload(_file, that.uploadCallbacks)
+			})
+		},
+		uploadFile() {
+			message.loading("上传中...", 0)
+			var _file = event.target.files[0] // 上传的 file 对象
+			let that = this
+			this.fileType = RongIMLib.FILE_TYPE.FILE
+			UploadClient.initFile(this.config, function(uploadFile) {
 				uploadFile.upload(_file, that.uploadCallbacks)
 			})
 		},
@@ -337,6 +428,7 @@ export default {
 	box-sizing: border-box;
 	padding: 0 30px;
 	width: 100%;
+	background: #f7f7f7;
 }
 /* header */
 .header {

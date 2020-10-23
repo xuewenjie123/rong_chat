@@ -1,4 +1,5 @@
 let devConfig = {
+	productionSourceMap: false,
 	devServer: {
 		// 基本路径
 		proxy: {
