@@ -274,6 +274,7 @@ export default {
 							.then(function(message) {
 								console.log("发送消息成功", message)
 								that.messageList.push(message)
+								that.timer = setTimeout(that.scrollEnd, 2000)
 							})
 					})
 					.catch(function(error) {
@@ -311,8 +312,8 @@ export default {
 						}
 					)
 					that.messageList.push(message)
+					that.timer = setTimeout(that.scrollEnd, 2000)
 				}
-				that.timer = setTimeout(that.scrollEnd, 2000)
 			},
 			status: function(event) {
 				var status = event.status
